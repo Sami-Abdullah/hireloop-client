@@ -1,8 +1,9 @@
 "use client";
-
+import { authClient } from "@/lib/auth-client"
 import { useState } from "react";
 import { Link, Button } from "@heroui/react";
 import { Bars, Xmark } from "@gravity-ui/icons";
+import { toast } from "react-toastify";
 
 const navLinks = [
   { label: "Browse Jobs", href: "/jobs" },
@@ -13,23 +14,31 @@ const navLinks = [
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  const {
+    data: session,
+    isPending,
+  } = authClient.useSession();
+
+  const handleSignOut = async () => {
+    await authClient.signOut();
+    toast.success("Signed out successfully");
+  };
+
+  // ── Render ──
   return (
-    <nav className="sticky top-0 z-50 w-full px-4 py-3">
+    <nav className="sticky top-0 z-50 w-full px-4 py-3 border-b">
       <div
         className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl px-6 py-3"
         style={{
-          background: "rgba(8, 12, 20, 0.75)",
+          background: "rgba(10, 10, 15, 0.75)",
           border: "1px solid rgba(255,255,255,0.08)",
           backdropFilter: "blur(16px)",
           WebkitBackdropFilter: "blur(16px)",
-          boxShadow: "0 1px 0 0 rgba(59,111,245,0.15), 0 4px 24px rgba(0,0,0,0.4)",
+          boxShadow: "0 1px 0 0 rgba(80,60,200,0.15), 0 4px 24px rgba(0,0,0,0.4)",
         }}
       >
         {/* ── Logo ── */}
-        <Link
-          href="/"
-          className="group inline-flex items-center gap-2 no-underline"
-        >
+        <Link href="/" className="group inline-flex items-center gap-2 no-underline">
           <span
             className="flex h-8 w-8 items-center justify-center rounded-lg"
             style={{
@@ -65,10 +74,7 @@ export default function Navbar() {
               <Link
                 href={href}
                 className="relative px-4 py-2 rounded-lg text-sm no-underline transition-all duration-150"
-                style={{
-                  color: "#7a8cad",
-                  fontFamily: "'DM Sans', sans-serif",
-                }}
+                style={{ color: "#7a8cad", fontFamily: "'DM Sans', sans-serif" }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.color = "#c8d8ff";
                   e.currentTarget.style.background = "rgba(255,255,255,0.05)";
@@ -86,40 +92,96 @@ export default function Navbar() {
 
         {/* ── Desktop actions ── */}
         <div className="hidden md:flex items-center gap-3">
-          <Link
-            href="/signin"
-            className="px-4 py-2 rounded-lg text-sm no-underline transition-all duration-150"
-            style={{
-              color: "#7a8cad",
-              fontFamily: "'DM Sans', sans-serif",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = "#c8d8ff";
-              e.currentTarget.style.background = "rgba(255,255,255,0.05)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = "#7a8cad";
-              e.currentTarget.style.background = "transparent";
-            }}
-          >
-            Sign In
-          </Link>
+          {isPending ? (
+            // Loading skeleton
+            <div
+              className="h-8 w-28 rounded-xl animate-pulse"
+              style={{ background: "rgba(255,255,255,0.06)" }}
+            />
+          ) : session ? (
+            <>
+              {/* Avatar + name */}
+              <div
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl"
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                }}
+              >
+                <span
+                  className="flex h-7 w-7 items-center justify-center rounded-lg text-xs font-semibold text-white shrink-0"
+                  style={{
+                    background: "linear-gradient(135deg, #3b6ff5 0%, #6b3cf5 100%)",
+                    boxShadow: "0 0 8px rgba(59,111,245,0.35)",
+                    fontFamily: "'DM Sans', sans-serif",
+                  }}
+                >
+                  {session.user.name?.charAt(0).toUpperCase()}
+                </span>
+                <span
+                  className="text-sm font-medium"
+                  style={{ color: "#c8d8ff", fontFamily: "'DM Sans', sans-serif" }}
+                >
+                  {session.user.name}
+                </span>
+              </div>
 
-          <Button
-            as="a"
-            href="/signup"
-            className="rounded-xl px-5 py-2 text-sm font-medium text-white transition-all duration-150 hover:opacity-90 active:scale-95"
-            style={{
-              background: "linear-gradient(135deg, #3b6ff5 0%, #6b3cf5 100%)",
-              boxShadow: "0 0 16px rgba(59,111,245,0.3)",
-              fontFamily: "'DM Sans', sans-serif",
-              border: "none",
-              minWidth: "unset",
-              height: "unset",
-            }}
-          >
-            Get Started
-          </Button>
+              {/* Sign out */}
+              <button
+                onClick={handleSignOut}
+                className="px-4 py-2 rounded-lg text-sm transition-all duration-150"
+                style={{
+                  color: "#7a8cad",
+                  fontFamily: "'DM Sans', sans-serif",
+                  background: "transparent",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = "#c8d8ff";
+                  e.currentTarget.style.background = "rgba(255,255,255,0.05)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = "#7a8cad";
+                  e.currentTarget.style.background = "transparent";
+                }}
+              >
+                Sign out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/signin"
+                className="px-4 py-2 rounded-lg text-sm no-underline transition-all duration-150"
+                style={{ color: "#7a8cad", fontFamily: "'DM Sans', sans-serif" }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = "#c8d8ff";
+                  e.currentTarget.style.background = "rgba(255,255,255,0.05)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = "#7a8cad";
+                  e.currentTarget.style.background = "transparent";
+                }}
+              >
+                Sign In
+              </Link>
+              <Link href="/signup">
+                <Button
+                  className="rounded-xl px-5 py-2 text-sm font-medium text-white transition-all duration-150 hover:opacity-90 active:scale-95"
+                  style={{
+                    background: "linear-gradient(135deg, #3b6ff5 0%, #6b3cf5 100%)",
+                    boxShadow: "0 0 16px rgba(59,111,245,0.3)",
+                    fontFamily: "'DM Sans', sans-serif",
+                    border: "none",
+                    minWidth: "unset",
+                    height: "unset",
+                  }}
+                >
+                  Get Started
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
 
         {/* ── Mobile menu toggle ── */}
@@ -134,10 +196,7 @@ export default function Navbar() {
           aria-label="Toggle menu"
           aria-expanded={isMenuOpen}
         >
-          {isMenuOpen
-            ? <Xmark className="h-5 w-5" />
-            : <Bars className="h-5 w-5" />
-          }
+          {isMenuOpen ? <Xmark className="h-5 w-5" /> : <Bars className="h-5 w-5" />}
         </button>
       </div>
 
@@ -158,10 +217,7 @@ export default function Navbar() {
                 <Link
                   href={href}
                   className="flex w-full items-center rounded-lg px-4 py-3 text-sm no-underline transition-all duration-150"
-                  style={{
-                    color: "#7a8cad",
-                    fontFamily: "'DM Sans', sans-serif",
-                  }}
+                  style={{ color: "#7a8cad", fontFamily: "'DM Sans', sans-serif" }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.color = "#c8d8ff";
                     e.currentTarget.style.background = "rgba(255,255,255,0.05)";
@@ -177,38 +233,88 @@ export default function Navbar() {
             ))}
 
             <li>
-              <div
-                className="my-2 h-px w-full"
-                style={{ background: "rgba(255,255,255,0.06)" }}
-                aria-hidden="true"
-              />
+              <div className="my-2 h-px w-full" style={{ background: "rgba(255,255,255,0.06)" }} aria-hidden="true" />
             </li>
 
-            <li>
-              <Link
-                href="/signin"
-                className="flex w-full items-center rounded-lg px-4 py-3 text-sm no-underline"
-                style={{ color: "#7a8cad", fontFamily: "'DM Sans', sans-serif" }}
-              >
-                Sign In
-              </Link>
-            </li>
-            <li className="px-1 pb-1">
-              <Button
-                as="a"
-                href="/signup"
-                className="w-full rounded-xl py-3 text-sm font-medium text-white transition-all duration-150 hover:opacity-90"
-                style={{
-                  background: "linear-gradient(135deg, #3b6ff5 0%, #6b3cf5 100%)",
-                  boxShadow: "0 0 16px rgba(59,111,245,0.25)",
-                  fontFamily: "'DM Sans', sans-serif",
-                  border: "none",
-                  height: "unset",
-                }}
-              >
-                Get Started
-              </Button>
-            </li>
+            {isPending ? (
+              <li>
+                <div className="h-10 mx-1 rounded-xl animate-pulse" style={{ background: "rgba(255,255,255,0.06)" }} />
+              </li>
+            ) : session ? (
+              <>
+                {/* Mobile: user info */}
+                <li>
+                  <div
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl mx-1"
+                    style={{
+                      background: "rgba(255,255,255,0.04)",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                    }}
+                  >
+                    <span
+                      className="flex h-8 w-8 items-center justify-center rounded-lg text-xs font-semibold text-white shrink-0"
+                      style={{
+                        background: "linear-gradient(135deg, #3b6ff5 0%, #6b3cf5 100%)",
+                        fontFamily: "'DM Sans', sans-serif",
+                      }}
+                    >
+                      {session.user.name?.charAt(0).toUpperCase()}
+                    </span>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium" style={{ color: "#c8d8ff", fontFamily: "'DM Sans', sans-serif" }}>
+                        {session.user.name}
+                      </span>
+                      <span className="text-xs" style={{ color: "#5c738f", fontFamily: "'DM Sans', sans-serif" }}>
+                        {session.user.email}
+                      </span>
+                    </div>
+                  </div>
+                </li>
+                {/* Mobile: sign out */}
+                <li className="px-1 pb-1 mt-1">
+                  <button
+                    onClick={handleSignOut}
+                    className="w-full rounded-xl py-3 text-sm font-medium transition-all duration-150 hover:opacity-90"
+                    style={{
+                      color: "#7a8cad",
+                      fontFamily: "'DM Sans', sans-serif",
+                      background: "rgba(255,255,255,0.04)",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                    }}
+                  >
+                    Sign out
+                  </button>
+                </li>
+              </>
+            ) : (
+              <>
+                <li>
+                  <Link
+                    href="/signin"
+                    className="flex w-full items-center rounded-lg px-4 py-3 text-sm no-underline"
+                    style={{ color: "#7a8cad", fontFamily: "'DM Sans', sans-serif" }}
+                  >
+                    Sign In
+                  </Link>
+                </li>
+                <li className="px-1 pb-1">
+                  <Button
+                    as="a"
+                    href="/signup"
+                    className="w-full rounded-xl py-3 text-sm font-medium text-white transition-all duration-150 hover:opacity-90"
+                    style={{
+                      background: "linear-gradient(135deg, #3b6ff5 0%, #6b3cf5 100%)",
+                      boxShadow: "0 0 16px rgba(59,111,245,0.25)",
+                      fontFamily: "'DM Sans', sans-serif",
+                      border: "none",
+                      height: "unset",
+                    }}
+                  >
+                    Get Started
+                  </Button>
+                </li>
+              </>
+            )}
           </ul>
         </div>
       )}
