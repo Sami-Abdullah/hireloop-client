@@ -1,11 +1,18 @@
 import React from 'react';
+import CompanyRegistration from './CompanyRegistration';
+import { getUserSession } from '@/lib/core/session';
+import { getCompanies } from '@/lib/api/companies';
 
-const RecuriterCompany = () => {
+const CompanyProfilepage =async () => {
+  const user =await getUserSession();
+
+  const company = await getCompanies(user?.id);
+  console.log(company,'company here nakii ');
   return (
     <div>
-      this is company
+      <CompanyRegistration recruiterId={user?.id} companyDetails={company}></CompanyRegistration>
     </div>
   );
 };
 
-export default RecuriterCompany;
+export default CompanyProfilepage;
